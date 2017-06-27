@@ -46,6 +46,11 @@ public class connect {
         You are not required to input all 3 things (account, container, object). However, you must at
         least include an account. For each additional field you add, container/object, your output
         will differ with it.
+
+        We already have a set of test data ready here:
+        Account - companyA
+        Container - folder1
+        Object - testA
      ***************************************************************************************************/
 
 
