@@ -43,6 +43,8 @@ public class connect {
         that each time you make a PUT/GET/POST Request, you need to provide it with an Auth-Token
         The Restful API URL has the following structure:
             http://server-name:port/v1/AUTH_{account}/{container}/{object}
+        Each account may have multiple containers, each container may contain multiple objects.
+
         You are not required to input all 3 things (account, container, object). However, you must at
         least include an account. For each additional field you add, container/object, your output
         will differ with it.
