@@ -37,6 +37,27 @@ public class connect {
         sendHead("companyA", "folder1", "testA");
     }
 
+    /*************************************************************************************************
+        The following information is an understanding of how to swift architecture works.
+        We are currently using version 1 (v1.0), which does not include a keystone. This means
+        that each time you make a PUT/GET/POST Request, you need to provide it with an Auth-Token
+        The Restful API URL has the following structure:
+            http://server-name:port/v1/AUTH_{account}/{container}/{object}
+        You are not required to input all 3 things (account, container, object). However, you must at
+        least include an account. For each additional field you add, container/object, your output
+        will differ with it.
+     ***************************************************************************************************/
+
+
+    /*
+      Function:
+        - Generates an Auth Token so we can use it later with other RESTFUL API Requests
+        - The output of this function are the Metadata that comes as default
+      Param:
+        - User: User is packaged in this format {account}:{user}. Each account can have multiple users, and thus
+                its format is as so
+        - Password: The password used to access account information
+     */
     public static void authenticate() throws Exception {
         System.out.println("Authenticate needs to run first. Once the Auth Token is received, it is saved as a variable " +
                 "for use along with other REST API Commands");
@@ -47,6 +68,17 @@ public class connect {
         printHeader(con);
     }
 
+    /*
+      Send a Get Request
+        -The GET Request will list all the containers available within the account
+        -If you include the container, it will list all the objects
+        -If you only include the account, it will list all the containers available
+         within the account
+        -If you list the objects as well, it will output the metadata of that object
+
+      Return: The function written here only allows you to provide an account, so it will
+          only list the containers within the account
+     */
     public static void get(String account) throws Exception {
 
         String url = "http://hln2329p:8080/v1/AUTH_" + account;
@@ -57,6 +89,7 @@ public class connect {
         con.setRequestMethod("GET");
 
         //add request Header
+        //Setting the Auth Token
         con.setRequestProperty("X-Auth-Token", auth_token);
         con.setRequestProperty("Accept", "text/plain");
         con.setRequestProperty("Accept-Charset", "utf-8");
@@ -67,7 +100,12 @@ public class connect {
         printOutput(con);
     }
 
-    // HTTP POST request
+    /*
+      PUT Function differs when used in different levels (Account, Container, Object)
+      Account - Request is not available in Account
+      Containers - Create container
+      Objects - Create or replace object
+     */
     public static void sendPut(String account, String container, String object) throws Exception {
 
         String url = formURL(account, container, object);
@@ -82,6 +120,8 @@ public class connect {
         con.setDoInput(true);
         con.setDoOutput(true);
 
+        //Create a stream and write "Resource Content" -> This is placed as the object for
+        // this put command "
         OutputStreamWriter out = new OutputStreamWriter(
                 con.getOutputStream());
         out.write("Resource content");
@@ -90,7 +130,20 @@ public class connect {
         printHeader(con);
     }
 
-    // Post Head Show Metadata
+    /*
+      POST - Used to update, create, or delete metadata
+      Usage:
+         Account - Create, update, or delete account metadata
+         Containers - Create, update, or delete container metadata
+         Objects - Create or update object metadata
+      Function:
+         - Adds two custom metadata to the object testA
+         - You do not always need to create custom metadata. Swift comes with a suit of commonly used Metadata
+           as well. For example, X-Delete-At, Bulk-Dete etc.. For more info, visit swift's API Doc
+         - The two custom metadata are "X-Object-Meta-Brand : BMW" and "X-Object-Meta-Model : x3"
+         - When adding custom metadata, you must add in the following format:
+              "X-Object-Meta-{name} : {value}"
+     */
     public static void sendPost(HashMap<String, String> metadata, String account, String container, String object) throws Exception {
 
         String url = formURL(account, container, object);
@@ -104,6 +157,7 @@ public class connect {
         Iterator iterator = set.iterator();
         while(iterator.hasNext()){
             Map.Entry mentry = (Map.Entry) iterator.next();
+            //Adding custom metadata here
             con.setRequestProperty((String) mentry.getKey(), (String) mentry.getValue());
         }
         responseCode(con, url, "POST");
@@ -113,7 +167,16 @@ public class connect {
         printHeader(con);
     }
 
-    //Send Head Request
+    /*
+      HEAD - Show metadata
+      Usage:
+         Account - Show Account Metadata
+         Containers - Show container Metadata
+         Objects - Show object metadata
+      Function:
+         Earlier in the POST Method, we added 2 new custom metadata, HEAD
+         will be able to show that the custom Metadata has been updated
+     */
     public static void sendHead(String account, String container, String object) throws Exception{
         String url = formURL(account, container, object);
         HttpURLConnection con = conn(url);
@@ -122,6 +185,12 @@ public class connect {
         responseCode(con, url, "HEAD");
         printHeader(con);
     }
+
+    /*****************************************************************************
+      The functions below are merely helper functions. I used them to refactor code.
+      For more information, please refer to its official API Document:
+              https://developer.openstack.org/api-ref/object-storage
+     *****************************************************************************/
 
     /*
       Print the response output
@@ -157,6 +226,8 @@ public class connect {
                 continue;
             builder.append( entry.getKey())
                     .append(": ");
+
+            //Caching the Auth Token
             if(entry.getKey().equals("X-Auth-Token")){
                 auth_token = (String) entry.getValue().get(0);
 
@@ -191,7 +262,7 @@ public class connect {
     }
 
     /*
-       Establish an HTTP Connection
+       Establish a HTTP Connection
        Param:
            url (String) - the url in string
        Return:
@@ -222,6 +293,10 @@ public class connect {
         }
         return url;
     }
+
+    /***************************************************************************
+                           GOOD LUCK, HOPE THIS WAS HELPFUL
+     ***************************************************************************/
 
 
 }
